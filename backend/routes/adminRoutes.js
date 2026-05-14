@@ -5,24 +5,23 @@ const db = require("../config/db");
 // 🟢 ADMIN LOGIN
 router.post("/login", (req, res) => {
     const { admin_id, password } = req.body;
-    const username = admin_id; // for clarity in logs
 
-    console.log("Admin Login Attempt: ", username, password);
+    console.log("Admin Login Attempt: ", admin_id, password);
     // validation
-    if (!username || !password) {
-        return res.json({ error: "Username and Password required" });
+    if (!admin_id || !password) {
+        return res.json({ error: "admin_id and Password required" });
     }
 
     // check admin in database
-    const sql = "SELECT * FROM admin WHERE username=? AND password=?";
+    const sql = "SELECT * FROM admin WHERE admin_id=? AND password=?";
 
-    db.query(sql, [username, password], (err, result) => {
+    db.query(sql, [admin_id, password], (err, result) => {
         if (err) {
             return res.json({ error: err.message });
         }
 
         if (result.length === 0) {
-            return res.json({ error: "Invalid Username or Password" });
+            return res.json({ error: "Invalid admin_id or Password" });
         }
 
         // success response
@@ -31,7 +30,7 @@ router.post("/login", (req, res) => {
             admin: {
                 id: result[0].id,
                 name: result[0].name,
-                username: result[0].username
+                admin_id: result[0].admin_id
             }
         });
     });
