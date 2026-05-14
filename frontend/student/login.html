@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Login - SMH Complaint System</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="navbar">
+            <div class="navbar-brand">📋 SMH Complaint System</div>
+            <ul class="navbar-menu">
+                <li><a href="../index.html">Home</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <div class="auth-wrapper">
+        <div class="auth-box">
+            <h2>Student Login</h2>
+            <div id="alertBox"></div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="reg_no">Registration Number (10 digits) *</label>
+                    <input type="text" id="reg_no" name="reg_no" required
+                        placeholder="Enter your 10-digit registration number" maxlength="10">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Login</button>
+            </form>
+
+            <div class="auth-link">
+                <p>Don't have an account? <a href="register.html">Register here</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const alertBox = document.getElementById('alertBox');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const reg_no = document.getElementById('reg_no').value;
+
+            // Validate registration number
+            if (!/^\d{10}$/.test(reg_no)) {
+                showAlert('Registration number must be exactly 10 digits', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:5000/student/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ reg_no })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    showAlert(data.error, 'error');
+                } else {
+                    // Store student data in localStorage
+                    localStorage.setItem('student', JSON.stringify(data));
+                    showAlert('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
+                }
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        });
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertBox.innerHTML = '';
+            alertBox.appendChild(alertDiv);
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - SMH Complaint System</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="navbar">
+            <div class="navbar-brand">📋 SMH Complaint System</div>
+            <ul class="navbar-menu">
+                <li><a href="../index.html">Home</a></li>
+            </ul>
+        </div>
+    </header>
+
+    <div class="auth-wrapper">
+        <div class="auth-box">
+            <h2>Admin Login</h2>
+            <div id="alertBox"></div>
+
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label for="admin_id">Admin ID *</label>
+                    <input type="text" id="admin_id" name="admin_id" required placeholder="Enter your admin ID">
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password *</label>
+                    <input type="password" id="password" name="password" required placeholder="Enter your password">
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Login</button>
+            </form>
+
+            <div class="auth-link">
+                <p style="text-align: center; color: var(--text-light);">Admin access only. Contact the hall
+                    administrator if you don't have credentials.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('adminLoginForm');
+        const alertBox = document.getElementById('alertBox');
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            console.log("INPUT ELEMENT:", document.getElementById('admin_id'));
+            console.log("VALUE:", document.getElementById('admin_id')?.value);
+
+            const admin_id = document.getElementById('admin_id').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('http://localhost:5000/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ admin_id, password })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    showAlert(data.error, 'error');
+                } else {
+                    // Store admin data in localStorage
+                    localStorage.setItem('admin', JSON.stringify(data.admin));
+                    showAlert('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1500);
+                }
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        });
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertBox.innerHTML = '';
+            alertBox.appendChild(alertDiv);
+        }
+    </script>
+</body>
+
+</html>

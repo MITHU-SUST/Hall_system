@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - SMH Complaint System</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+    <header>
+        <div class="navbar">
+            <div class="navbar-brand">📋 SMH Complaint System</div>
+            <ul class="navbar-menu">
+                <li><a href="../index.html">Home</a></li>
+                <li id="studentName"></li>
+                <li><button onclick="logout()"
+                        style="background: rgba(255,255,255,0.3); padding: 0.5rem 1rem; border-radius: 0.5rem;">Logout</button>
+                </li>
+            </ul>
+        </div>
+    </header>
+
+    <div class="dashboard-wrapper">
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li><a href="#" class="active" onclick="showSection('dashboard')">📊 Dashboard</a></li>
+                <li><a href="#" onclick="showSection('new-complaint')">📝 File Complaint</a></li>
+                <li><a href="#" onclick="showSection('my-complaints')">📋 My Complaints</a></li>
+                <li><a href="#" onclick="showSection('profile')">👤 My Profile</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <!-- DASHBOARD OVERVIEW -->
+            <div id="dashboard" class="section">
+                <h2>Welcome to Your Dashboard</h2>
+                <div id="studentProfile" class="card mt-3">
+                    <div class="card-body">
+                        <p><strong>Name:</strong> <span id="dashName"></span></p>
+                        <p><strong>Registration No:</strong> <span id="dashRegNo"></span></p>
+                        <p><strong>Room No:</strong> <span id="dashRoomNo"></span></p>
+                    </div>
+                </div>
+
+                <div class="grid grid-3 mt-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h3>Pending</h3>
+                            <p style="font-size: 2rem; font-weight: bold; color: var(--warning);" id="countPending">0
+                            </p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <h3>Solving</h3>
+                            <p style="font-size: 2rem; font-weight: bold; color: var(--primary);" id="countSolving">0
+                            </p>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <h3>Solved</h3>
+                            <p style="font-size: 2rem; font-weight: bold; color: var(--success);" id="countSolved">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin-top: 2rem;">Recent Complaints</h3>
+                <div id="recentComplaints"></div>
+            </div>
+
+            <!-- FILE NEW COMPLAINT -->
+            <div id="new-complaint" class="section hidden">
+                <h2>File a New Complaint</h2>
+                <div class="form-container">
+                    <div id="complaintAlert"></div>
+
+                    <form id="complaintForm">
+                        <div class="form-group">
+                            <label for="category">Category *</label>
+                            <select id="category" required>
+                                <option value="">Select a category</option>
+                                <option value="1">⚡ Electricity</option>
+                                <option value="2">📡 WiFi</option>
+                                <option value="3">🍽️ Food</option>
+                                <option value="4">🔧 Maintenance</option>
+                                <option value="5">🔒 Security</option>
+                                <option value="6">💧 Water Supply</option>
+                                <option value="7">🔊 Noise</option>
+                                <option value="8">❓ Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="complaintTitle">Title *</label>
+                            <input type="text" id="complaintTitle" required placeholder="Brief title of your complaint">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="complaintDesc">Description *</label>
+                            <textarea id="complaintDesc" required
+                                placeholder="Describe your complaint in detail"></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="priority">Priority</label>
+                            <select id="priority">
+                                <option value="normal">🔵 Normal</option>
+                                <option value="high">🔴 High</option>
+                                <option value="urgent">⚠️ Urgent</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-block">Submit Complaint</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- MY COMPLAINTS LIST -->
+            <div id="my-complaints" class="section hidden">
+                <h2>My Complaints</h2>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <input type="text" id="searchBox" placeholder="🔍 Search complaints..."
+                        style="width: 100%; max-width: 300px; padding: 0.75rem; border: 1px solid var(--border); border-radius: 0.5rem;">
+                </div>
+
+                <div id="complaintsList"></div>
+            </div>
+
+            <!-- PROFILE -->
+            <div id="profile" class="section hidden">
+                <h2>My Profile</h2>
+                <div class="card">
+                    <div class="card-body">
+                        <table>
+                            <tr>
+                                <td><strong>Full Name:</strong></td>
+                                <td id="profileName"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Registration Number:</strong></td>
+                                <td id="profileRegNo"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Room Number:</strong></td>
+                                <td id="profileRoomNo"></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Member Since:</strong></td>
+                                <td id="profileJoinDate"></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let currentStudent = null;
+
+        // Load student data on page load
+        window.addEventListener('load', () => {
+            const student = localStorage.getItem('student');
+            if (!student) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            currentStudent = JSON.parse(student);
+            displayStudentInfo();
+            loadDashboardData();
+            loadComplaints();
+        });
+
+        function displayStudentInfo() {
+            document.getElementById('studentName').textContent = `👋 ${currentStudent.name}`;
+            document.getElementById('dashName').textContent = currentStudent.name;
+            document.getElementById('dashRegNo').textContent = currentStudent.reg_no;
+            document.getElementById('dashRoomNo').textContent = currentStudent.room_no;
+
+            document.getElementById('profileName').textContent = currentStudent.name;
+            document.getElementById('profileRegNo').textContent = currentStudent.reg_no;
+            document.getElementById('profileRoomNo').textContent = currentStudent.room_no;
+            document.getElementById('profileJoinDate').textContent = new Date().toLocaleDateString();
+        }
+
+        async function loadDashboardData() {
+            try {
+                const response = await fetch(`http://localhost:5000/complaint/student/${currentStudent.id}`);
+                const complaints = await response.json();
+
+                let pending = 0, solving = 0, solved = 0;
+                complaints.forEach(c => {
+                    if (c.status === 'pending') pending++;
+                    else if (c.status === 'solving') solving++;
+                    else if (c.status === 'solved') solved++;
+                });
+
+                document.getElementById('countPending').textContent = pending;
+                document.getElementById('countSolving').textContent = solving;
+                document.getElementById('countSolved').textContent = solved;
+
+                displayRecentComplaints(complaints.slice(0, 5));
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+            }
+        }
+
+        function displayRecentComplaints(complaints) {
+            const container = document.getElementById('recentComplaints');
+            container.innerHTML = '';
+
+            if (complaints.length === 0) {
+                container.innerHTML = '<p class="text-muted">No complaints filed yet.</p>';
+                return;
+            }
+
+            complaints.forEach(complaint => {
+                const badgeClass = `badge-${complaint.status}`;
+                const item = `
+                    <div class="complaint-item">
+                        <div class="complaint-info">
+                            <h3>${complaint.title}</h3>
+                            <div class="complaint-meta">
+                                <span>${complaint.category_name}</span> • 
+                                <span>${new Date(complaint.created_at).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                        <div class="complaint-status">
+                            <span class="badge ${badgeClass}">${complaint.status.toUpperCase()}</span>
+                            <button class="btn btn-sm btn-primary" onclick="viewComplaint(${complaint.id})">View</button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += item;
+            });
+        }
+
+        async function loadComplaints() {
+            try {
+                const response = await fetch(`http://localhost:5000/complaint/student/${currentStudent.id}`);
+                const complaints = await response.json();
+                displayComplaints(complaints);
+            } catch (error) {
+                console.error('Error loading complaints:', error);
+            }
+        }
+
+        function displayComplaints(complaints) {
+            const container = document.getElementById('complaintsList');
+            container.innerHTML = '';
+
+            if (complaints.length === 0) {
+                container.innerHTML = '<p class="text-muted">You have not filed any complaints yet.</p>';
+                return;
+            }
+
+            complaints.forEach(complaint => {
+                const badgeClass = `badge-${complaint.status}`;
+                const item = `
+                    <div class="complaint-item">
+                        <div class="complaint-info">
+                            <h3>${complaint.title}</h3>
+                            <div class="complaint-meta">
+                                <strong>${complaint.category_name}</strong> • 
+                                ${new Date(complaint.created_at).toLocaleDateString()} •
+                                <span class="badge ${badgeClass}">${complaint.status.toUpperCase()}</span>
+                            </div>
+                            <p style="margin-top: 0.5rem; color: var(--text-light);">${complaint.description.substring(0, 100)}...</p>
+                        </div>
+                        <button class="btn btn-sm btn-primary" onclick="viewComplaint(${complaint.id})">View Details</button>
+                    </div>
+                `;
+                container.innerHTML += item;
+            });
+        }
+
+        function viewComplaint(id) {
+            window.location.href = `complaint-details.html?id=${id}`;
+        }
+
+        document.getElementById('complaintForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const category_id = document.getElementById('category').value;
+            const title = document.getElementById('complaintTitle').value;
+            const description = document.getElementById('complaintDesc').value;
+            const priority = document.getElementById('priority').value;
+
+            try {
+                const response = await fetch('http://localhost:5000/complaint/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        student_id: currentStudent.id,
+                        category_id,
+                        title,
+                        description,
+                        priority
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    showAlert(data.error, 'error');
+                } else {
+                    showAlert('Complaint submitted successfully!', 'success');
+                    document.getElementById('complaintForm').reset();
+                    setTimeout(() => {
+                        loadComplaints();
+                        loadDashboardData();
+                        showSection('my-complaints');
+                    }, 1500);
+                }
+            } catch (error) {
+                showAlert('Error: ' + error.message, 'error');
+            }
+        });
+
+        document.getElementById('searchBox').addEventListener('keyup', async (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const response = await fetch(`http://localhost:5000/complaint/student/${currentStudent.id}`);
+            const complaints = await response.json();
+
+            const filtered = complaints.filter(c =>
+                c.title.toLowerCase().includes(searchTerm) ||
+                c.description.toLowerCase().includes(searchTerm) ||
+                c.category_name.toLowerCase().includes(searchTerm)
+            );
+
+            displayComplaints(filtered);
+        });
+
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(sectionId).classList.remove('hidden');
+
+            document.querySelectorAll('.sidebar-menu a').forEach(link => {
+                link.classList.remove('active');
+            });
+            event.target.classList.add('active');
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            document.getElementById('complaintAlert').innerHTML = '';
+            document.getElementById('complaintAlert').appendChild(alertDiv);
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                localStorage.removeItem('student');
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
+</body>
+
+</html>
