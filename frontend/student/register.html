@@ -40,6 +40,19 @@
                     <input type="text" id="room_no" name="room_no" required placeholder="e.g., 301">
                 </div>
 
+                <div class="form-group">
+                    <label for="password">Password *</label>
+                    <input type="password" id="password" name="password" required placeholder="Create a password"
+                        minlength="4">
+                    <small style="color: var(--text-light);">Minimum 4 characters</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password *</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required
+                        placeholder="Confirm your password">
+                </div>
+
                 <button type="submit" class="btn btn-primary btn-block">Register</button>
             </form>
 

@@ -1,12 +1,10 @@
-
-const loginForm = document.getElementById('loginForm');
+const forgotPasswordForm = document.getElementById('forgotPasswordForm');
 const alertBox = document.getElementById('alertBox');
 
-loginForm.addEventListener('submit', async (e) => {
+forgotPasswordForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
     const reg_no = document.getElementById('reg_no').value;
-    const password = document.getElementById('password').value;
 
     // Validate registration number
     if (!/^\d{10}$/.test(reg_no)) {
@@ -14,18 +12,13 @@ loginForm.addEventListener('submit', async (e) => {
         return;
     }
 
-    if (!password || password.length < 4) {
-        showAlert('Please enter a valid password', 'error');
-        return;
-    }
-
     try {
-        const response = await fetch('http://localhost:5000/student/login', {
+        const response = await fetch('http://localhost:5000/student/forgot-password', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ reg_no, password })
+            body: JSON.stringify({ reg_no })
         });
 
         const data = await response.json();
@@ -33,12 +26,13 @@ loginForm.addEventListener('submit', async (e) => {
         if (data.error) {
             showAlert(data.error, 'error');
         } else {
-            // Store student data in localStorage
-            localStorage.setItem('student', JSON.stringify(data));
-            showAlert('Login successful! Redirecting...', 'success');
+            // Store the token temporarily
+            sessionStorage.setItem('resetReg_no', reg_no);
+            sessionStorage.setItem('resetToken', data.token);
+            showAlert('Reset token sent! Redirecting to reset page...', 'success');
             setTimeout(() => {
-                window.location.href = 'dashboard.html';
-            }, 1500);
+                window.location.href = 'reset-password.html';
+            }, 2000);
         }
     } catch (error) {
         showAlert('Error: ' + error.message, 'error');

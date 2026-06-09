@@ -197,6 +197,61 @@ function showAlert(message, type) {
     document.getElementById('complaintAlert').appendChild(alertDiv);
 }
 
+// 🟢 CHANGE PASSWORD HANDLER
+document.getElementById('changePasswordForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmNewPassword = document.getElementById('confirmNewPassword').value;
+
+    if (newPassword.length < 4) {
+        showAlertChangePassword('Password must be at least 4 characters', 'error');
+        return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+        showAlertChangePassword('New passwords do not match', 'error');
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:5000/student/change-password', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                id: currentStudent.id,
+                currentPassword,
+                newPassword
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            showAlertChangePassword(data.error, 'error');
+        } else {
+            showAlertChangePassword('✅ ' + data.message, 'success');
+            document.getElementById('changePasswordForm').reset();
+            setTimeout(() => {
+                logout();
+            }, 2000);
+        }
+    } catch (error) {
+        showAlertChangePassword('Error: ' + error.message, 'error');
+    }
+});
+
+function showAlertChangePassword(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type}`;
+    alertDiv.textContent = message;
+    document.getElementById('changePasswordAlert').innerHTML = '';
+    document.getElementById('changePasswordAlert').appendChild(alertDiv);
+}
+
 function logout() {
     if (confirm('Are you sure you want to logout?')) {
         localStorage.removeItem('student');

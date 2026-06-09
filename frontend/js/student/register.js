@@ -8,10 +8,24 @@ registerForm.addEventListener('submit', async (e) => {
     const name = document.getElementById('name').value;
     const reg_no = document.getElementById('reg_no').value;
     const room_no = document.getElementById('room_no').value;
+    const password = document.getElementById('password').value;
+    const confirm_password = document.getElementById('confirm_password').value;
 
     // Validate registration number
     if (!/^\d{10}$/.test(reg_no)) {
         showAlert('Registration number must be exactly 10 digits', 'error');
+        return;
+    }
+
+    // Validate password
+    if (password.length < 4) {
+        showAlert('Password must be at least 4 characters long', 'error');
+        return;
+    }
+
+    // Check if passwords match
+    if (password !== confirm_password) {
+        showAlert('Passwords do not match', 'error');
         return;
     }
 
@@ -21,7 +35,7 @@ registerForm.addEventListener('submit', async (e) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ reg_no, name, room_no })
+            body: JSON.stringify({ reg_no, name, room_no, password })
         });
 
         const data = await response.json();
