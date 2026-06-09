@@ -6,8 +6,11 @@ USE hall_system;
 CREATE TABLE IF NOT EXISTS students (
     id INT PRIMARY KEY AUTO_INCREMENT,
     reg_no VARCHAR(10) UNIQUE NOT NULL,
+    password VARCHAR(255),
     name VARCHAR(100) NOT NULL,
     room_no VARCHAR(50) NOT NULL,
+    reset_token VARCHAR(255),
+    reset_token_expires DATETIME,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
