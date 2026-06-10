@@ -134,6 +134,7 @@
             <!-- PROFILE -->
             <div id="profile" class="section hidden">
                 <h2>My Profile</h2>
+                <div id="profileAlert"></div>
                 <div class="card">
                     <div class="card-body">
                         <table>
@@ -155,6 +156,11 @@
                             </tr>
                         </table>
                     </div>
+                </div>
+
+                <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                    <button class="btn btn-success" onclick="downloadProfile()">📥 Download Profile Data</button>
+                    <button class="btn btn-danger" onclick="deleteAccount()">🗑️ Delete Account</button>
                 </div>
             </div>
 

@@ -80,9 +80,9 @@ router.post("/forgot-password", (req, res) => {
             return res.json({ error: "Student not found" });
         }
 
-        res.json({ 
+        res.json({
             message: "Reset token generated. Use this token to reset your password.",
-            token: resetToken 
+            token: resetToken
         });
     });
 });
@@ -153,6 +153,44 @@ router.post("/change-password", (req, res) => {
             if (err) return res.json(err);
 
             res.json({ message: "Password changed successfully! You will be logged out." });
+        });
+    });
+});
+
+// 🔴 DELETE ACCOUNT
+router.delete("/delete-account", (req, res) => {
+    const { id } = req.body;
+
+    if (!id) {
+        return res.json({ error: "Student ID is required" });
+    }
+
+    // First, delete all complaints associated with this student
+    const deleteComplaintsSQL = "DELETE FROM complaints WHERE student_id = ?";
+
+    db.query(deleteComplaintsSQL, [id], (err, complaintResult) => {
+        if (err) {
+            console.log("Error deleting complaints:", err);
+            return res.json({ error: "Error deleting account data" });
+        }
+
+        console.log(`Deleted ${complaintResult.affectedRows} complaints for student ${id}`);
+
+        // Then, delete the student account
+        const deleteStudentSQL = "DELETE FROM students WHERE id = ?";
+
+        db.query(deleteStudentSQL, [id], (err, studentResult) => {
+            if (err) {
+                console.log("Error deleting student:", err);
+                return res.json({ error: "Error deleting account" });
+            }
+
+            if (studentResult.affectedRows === 0) {
+                return res.json({ error: "Student not found" });
+            }
+
+            console.log(`Student account ${id} deleted successfully along with all complaints`);
+            res.json({ message: "Account and all associated data deleted successfully" });
         });
     });
 });

@@ -258,3 +258,116 @@ function logout() {
         window.location.href = 'login.html';
     }
 }
+
+// 📥 DOWNLOAD PROFILE DATA
+async function downloadProfile() {
+    try {
+        showAlertProfile('⏳ Preparing your data for download...', 'info');
+
+        // Fetch all complaints
+        const complaintsResponse = await fetch(`http://localhost:5000/complaint/student/${currentStudent.id}`);
+        const complaints = await complaintsResponse.json();
+
+        const profileData = {
+            personal_information: {
+                name: currentStudent.name,
+                registration_number: currentStudent.reg_no,
+                room_number: currentStudent.room_no,
+                email: currentStudent.email,
+                phone: currentStudent.phone,
+                student_id: currentStudent.id
+            },
+            account_summary: {
+                total_complaints: complaints.length,
+                pending_complaints: complaints.filter(c => c.status === 'pending').length,
+                solving_complaints: complaints.filter(c => c.status === 'solving').length,
+                solved_complaints: complaints.filter(c => c.status === 'solved').length
+            },
+            complaints: complaints.map(complaint => ({
+                complaint_id: complaint.id,
+                title: complaint.title,
+                category: complaint.category_name,
+                description: complaint.description,
+                priority: complaint.priority,
+                status: complaint.status,
+                created_date: new Date(complaint.created_at).toLocaleString(),
+                updated_date: complaint.updated_at ? new Date(complaint.updated_at).toLocaleString() : 'N/A'
+            })),
+            download_info: {
+                downloaded_at: new Date().toLocaleString(),
+                file_version: '1.0'
+            }
+        };
+
+        const dataStr = JSON.stringify(profileData, null, 2);
+        const dataBlob = new Blob([dataStr], { type: 'application/json' });
+        const url = URL.createObjectURL(dataBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `user_data_${currentStudent.reg_no}_${new Date().getTime()}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        showAlertProfile('✅ All your data has been downloaded successfully!', 'success');
+    } catch (error) {
+        showAlertProfile('❌ Error downloading data: ' + error.message, 'error');
+        console.error('Download error:', error);
+    }
+}
+
+// 🗑️ DELETE ACCOUNT
+function deleteAccount() {
+    const confirmDelete = confirm(
+        '⚠️ WARNING: This action cannot be undone!\n\n' +
+        'Deleting your account will:\n' +
+        '• Remove all your personal data\n' +
+        '• Delete all your complaints\n' +
+        '• Permanently close your account\n\n' +
+        'Are you sure you want to delete your account?'
+    );
+
+    if (!confirmDelete) return;
+
+    const finalConfirm = confirm('Are you absolutely certain? This action is IRREVERSIBLE!');
+    if (!finalConfirm) return;
+
+    deleteAccountConfirmed();
+}
+
+async function deleteAccountConfirmed() {
+    try {
+        const response = await fetch(`http://localhost:5000/student/delete-account`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                id: currentStudent.id
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            showAlertProfile(data.error, 'error');
+        } else {
+            showAlertProfile('✅ ' + data.message, 'success');
+            setTimeout(() => {
+                localStorage.removeItem('student');
+                window.location.href = 'login.html';
+            }, 2000);
+        }
+    } catch (error) {
+        showAlertProfile('Error: ' + error.message, 'error');
+    }
+}
+
+function showAlertProfile(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type}`;
+    alertDiv.textContent = message;
+    document.getElementById('profileAlert').innerHTML = '';
+    document.getElementById('profileAlert').appendChild(alertDiv);
+}
